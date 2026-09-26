@@ -2,6 +2,61 @@
 #include <string.h>
 #include <ctype.h>
 
+int extractIPv4(const char* str, unsigned long* outAddress, int* outPort);
+
+void runTests(void)
+{
+    const char *tests[] = {
+        "172.16.5.20",
+        "0.0.0.0",
+        "255.255.255.255",
+        "server=1.2.3.4:8080end",
+        "192a168.1.1.1",
+        "256.1.2.3",
+        "1.2.03.4",
+        "1.2.3",
+        "1.2.3.4.5",
+        "1..2.3.4",
+        "1.2.3.4.",
+        "1.2.3.4:65536",
+        "1.2.3.4:01",
+        "1.2.3.4::80",
+        "999.1.1.1 abc 1.2.3.4"
+    };
+
+    int expected[] = {
+        1, 1, 1, 1, 1,
+        0, 0, 0, 0, 0,
+        0, 0, 0, 0, 1
+    };
+
+    int passed = 0;
+    int total = sizeof(expected) / sizeof(expected[0]);
+
+    for (int i = 0; i < total; i++)
+    {
+        unsigned long address = 0;
+        int port = -1;
+
+        int result = extractIPv4(tests[i], &address, &port);
+
+        if (result == expected[i] &&
+            (result || (address == 0 && port == -1)))
+        {
+            printf("PASS: %s\n", tests[i]);
+            passed++;
+        }
+        else
+        {
+            printf("FAIL: %s\n", tests[i]);
+        }
+
+        printf("Address: %lu, Port: %d\n\n", address, port);
+    }
+
+    printf("RESULT: %d/%d tests passed\n", passed, total);
+}
+
 int extractIPv4(const char* str, unsigned long* outAddress, int* outPort)
 {
     int i = 0;
@@ -181,6 +236,8 @@ int main(void)
     char input[1024];
     unsigned long address;
     int port;
+
+    runTests();
 
     while (1)
     {
